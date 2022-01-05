@@ -1,119 +1,83 @@
 @extends('default')
 @section('title', 'Danh sách sản phẩm')
+@section('breadcrumb', 'Danh sách sản phẩm')
 @section('content')
-<div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-              <h1>Danh sách sản phẩm</h1>
-              @if(Session::get('message-update-success'))
-                <div class="card-header p-2">
-                <div class="alert alert-primary alert-dismissible fade show" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                        <span class="sr-only">Close</span>
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            @if (!Session::get('softDelete')) 
+            <a class="btn btn-success" href="item/add-item"><i class="fas fa-plus"></i> Add</a>
+            @endif
+            <a class="btn btn-default" href="item/showSoftDelete"><i class="fas fa-plus"></i> View Item Deleted</a>
+            <div class="card-tools">
+              <form action="item/search" method="get">
+                <div class="input-group input-group-sm" style="width: 150px;">
+                  <input type="text" name="key" class="form-control float-right" placeholder="Search">
+                  <div class="input-group-append">
+                    <button type="submit" class="btn btn-default">
+                      <i class="fas fa-search"></i>
                     </button>
-                    <strong>Thông báo!</strong> {{Session::get('message-update-success')}}
-                </div>
-                {{Session::put('message-update-success', null);}}
-            </div><!-- /.card-header -->
-                @endif
-              <div id="alertDelete"></div>
-              <div id="alertRestore"></div>
-            </div>
-            <div class="col-sm-6">
-              <ol class="breadcrumb float-sm-right">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active">Danh sách sản phẩm</li>
-              </ol>
-            </div>
-          </div>
-      </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-header">
-                      @if (!Session::get('softDelete')) 
-                      <a class="btn btn-success" href="item/add-item"><i class="fas fa-plus"></i> Add</a>
-                      @endif
-                      <a class="btn btn-default" href="item/showSoftDelete"><i class="fas fa-plus"></i> View Item Deleted</a>
-                      <div class="card-tools">
-                        <form action="item/search" method="get">
-                        <div class="input-group input-group-sm" style="width: 150px;">
-                          <input type="text" name="key" class="form-control float-right" placeholder="Search">
-                          <div class="input-group-append">
-                            <button type="submit" class="btn btn-default">
-                              <i class="fas fa-search"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </form>
-                      </div>
-                    
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body table-responsive p-0">
-                      <table class="table table-hover text-nowrap">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Publisher</th>
-                            <th>Image</th>
-                            <th>Category</th>
-                            <th>User</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @foreach($data as $items)
-                            <tr>
-                                <td>{{$items->id}}</td>
-                                <td>{{$items->title}}</td>
-                                <td>{{$items->publisher}}</td>
-                                <td><img style="max-width: 80px;" src="images/{{$items->image}}" alt="image"></td>
-                                <td>{{$items->category_name}}</td>
-                                <td>{{$items->user_name}}</td>
-                                <td>{{$items->quantity}}</td>
-                                <td>{{$items->price}}</td>
-                                <td>
-                                  @if (!Session::get('softDelete')) 
-                                  <a href="item/edit/{{$items->id}}" class="btn btn-success"><i class="fas fa-edit"></i></a> || 
-                                  <button class="btn btn-warning btnDeleteItem" value={{$items->id}}><i class="fas fa-trash"></i></button>
-                                  @else
-                                  <button class="btn btn-success btnRestoreItem" value={{$items->id}}><i class="fas fa-edit"></i>Restore</button> 
-                                  @endif
-                                </td>
-                            </tr>
-                          @endforeach
-                        </tbody>
-                      </table>
-                    </div>
-                    <!-- /.card-body -->
-                    
                   </div>
-                  <!-- /.card -->
-              </div>
-            <!-- /.col -->
+                </div>
+              </form>
+            </div>
           </div>
-          {{ $data->links()}}
-      </div><!-- /.container-fluid -->
-      
-    </section>
-    
-    <!-- /.content -->
-  </div>
+          <!-- /.card-header -->
+          <div class="card-body table-responsive p-0">
+            <table class="table table-hover text-nowrap">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Publisher</th>
+                  <th>Image</th>
+                  <th>Category</th>
+                  <th>User</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @foreach($data as $items)
+                  <tr>
+                      <td>{{$items->id}}</td>
+                      <td>{{$items->title}}</td>
+                      <td>{{$items->publisher}}</td>
+                      <td><img style="max-width: 80px;" src="images/{{$items->image}}" alt="image"></td>
+                      <td>{{$items->category_name}}</td>
+                      <td>{{$items->user_name}}</td>
+                      <td>{{$items->quantity}}</td>
+                      <td>{{$items->price}}</td>
+                      <td>
+                        @if (!Session::get('softDelete')) 
+                        <a href="item/edit/{{$items->id}}" class="btn btn-success"><i class="fas fa-edit"></i></a> || 
+                        <button class="btn btn-warning btnDeleteItem" value={{$items->id}}><i class="fas fa-trash"></i></button>
+                        @else
+                        <button class="btn btn-success btnRestoreItem" value={{$items->id}}><i class="fas fa-edit"></i>Restore</button> 
+                        @endif
+                      </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+          <!-- /.card-body -->
+          
+        </div>
+        <!-- /.card -->
+      </div>
+        <!-- /.col -->
+    </div>
+      {{ $data->links()}}
+  </div><!-- /.container-fluid -->
   
+</section>
+<!-- /.content -->
 @endsection
 @section('script')
 <script>

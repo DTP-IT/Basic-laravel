@@ -11,9 +11,10 @@ class Category extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = ['name'];
-
+    protected $perPage = 5;
+    
     public function items()
     {
-        return $this->hasMany(Item::class, 'category_id');
+        return $this->hasMany(Item::class);
     }
 }

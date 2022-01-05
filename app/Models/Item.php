@@ -11,4 +11,5 @@ class Item extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = ['title', 'publisher', 'image', 'category_id', 'user_id', 'quantity', 'price'];
+    protected $perPage = 5;
 }

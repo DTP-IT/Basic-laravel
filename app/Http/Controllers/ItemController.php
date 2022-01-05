@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ItemRequest;
 use App\Models\Item;
 use App\Models\Category;
 use App\Models\User;
@@ -30,10 +31,10 @@ class ItemController extends Controller
             $data = DB::table('items')
             ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
             ->leftJoin('users', 'items.user_id', '=', 'users.id')
-            ->where('items.deleted_at', '=', null)
+            ->whereNull('items.deleted_at')
             ->select('items.*', 'categories.name as category_name', 'users.name as user_name')
             ->orderBy('created_at', 'DESC')
-            ->paginate(20);
+            ->paginate();
    
             return view('pages.items.list-items')->with(compact('data'));
         } else {
@@ -49,9 +50,9 @@ class ItemController extends Controller
      */
     public function create()
     {
-        $category_datas = Category::all();
+        $categoryDatas = Category::all();
         
-        return view('pages.items.add-item')->with(compact('category_datas'));
+        return view('pages.items.add-item')->with(compact('categoryDatas'));
     }
 
     /**
@@ -60,35 +61,32 @@ class ItemController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ItemRequest $request)
     {
-        $data = $request->validate([
-            'title' => 'required',
-            'publisher' => 'required',
-            'category' => 'required'
-        ]);
-        $item = new Item();
-        $item->title = $data['title'];
-        $item->publisher = $data['publisher'];
-        if ($request['image']) {
+        $data = $request->validated();
+
+        if ($request->hasFile(['image'])) {
             //them image
             $image = $request['image'];
             $extension = $image->getClientOriginalExtension();
-            $name = time().'_'.$image->getClientOriginalName();
-            Storage::disk('public')->put($name,File::get($image));
-            $item->image = $name;
+            $name = time(). '_' .$image->getClientOriginalName();
+            Storage::disk('public')->put($name, File::get($image));
         }
         else {
-            $item->image = "default.png";
+            $name = "default.png";
         }
-        $item->category_id = $data['category'];
-        $item->user_id = Session::get('id');
-        $item->quantity = $request['quantity'];
-        $item->price = $request['price'];
-        $item->save();
-        Session::put('message', 'Thêm sản phẩm thành công!');
+     
+        Item::create([
+            'title' => $data['title'],
+            'publisher' => $data['publisher'],
+            'image' => $name,
+            'category_id' => $data['category'],
+            'user_id' => Session::get('id'),
+            'quantity' => $request['quantity'],
+            'price' => $request['price'],
+        ]);
 
-        return Redirect::to('item/add-item');
+        return redirect()->route('item.create')->with('message', 'Thêm sản phẩm thành công');
     }
 
     /**
@@ -111,9 +109,9 @@ class ItemController extends Controller
     public function edit($id)
     {
         $item = Item::find($id);
-        $category_datas = Category::all();
+        $categoryDatas = Category::all();
 
-        return view('pages.items.update-item')->with(compact('item', 'category_datas'));
+        return view('pages.items.update-item')->with(compact('item', 'categoryDatas'));
     }
 
     /**
@@ -123,32 +121,40 @@ class ItemController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ItemRequest $request, $id)
     {
-        $data = $request->validate([
-            'title' => 'required',
-            'publisher' => 'required',
-            'category' => 'required'
-        ]);
-        $item = Item::find($id);
-        $item->title = $data['title'];
-        $item->publisher = $data['publisher'];
-        if ($request['image']) {
+        $data = $request->validated();
+        if ($request->hasFile(['image'])) {
             //them image
             $image = $request['image'];
             $extension = $image->getClientOriginalExtension();
-            $name = time().'_'.$image->getClientOriginalName();
-            Storage::disk('public')->put($name,File::get($image));
-            $item->image = $name;
-        }
-        $item->category_id = $data['category'];
-        $item->user_id = Session::get('id');
-        $item->quantity = $request['quantity'];
-        $item->price = $request['price'];
-        $item->save();
-        Session::put('message-update-success', 'Cập nhật sản phẩm thành công!');
+            $name = time(). '_' .$image->getClientOriginalName();
+            Storage::disk('public')->put($name, File::get($image));
+            $image = $name;
 
-        return Redirect::to('item');
+            $data = [
+                'title' => $data['title'],
+                'publisher' => $data['publisher'],
+                'image' => $image,
+                'category_id' => $data['category'],
+                'user_id' => Session::get('id'),
+                'quantity' => $request['quantity'],
+                'price' => $request['price'],
+            ];
+        } else {
+            $data = [
+                'title' => $data['title'],
+                'publisher' => $data['publisher'],
+                'category_id' => $data['category'],
+                'user_id' => Session::get('id'),
+                'quantity' => $request['quantity'],
+                'price' => $request['price'],
+            ];
+        }
+        
+        Item::find($id)->update($data);
+
+        return redirect()->route('item.index')->with('message-update-success', 'Cập nhật sản phẩm thành công');;
     }
 
     /**
@@ -160,10 +166,9 @@ class ItemController extends Controller
     public function destroy(Request $request, $id)
     {
         $item = Item::find($id);
-        $title = $item->title;
-        $email_user = User::where('id', '=' , $item->user_id)->get();
-        $email = $email_user['0']['email'];
-        $name = $email_user['0']['name'];
+        $emailUser = User::where('id', '=' , $item->user_id)->first();
+        $email = $emailUser->email;
+        $name = $emailUser->name;
         $item->delete($id);
         /**
          * Kiểm tra người xóa có phải admin không
@@ -174,7 +179,7 @@ class ItemController extends Controller
                 'id' => $id,
                 'email' => $email,
                 'name' => $name,
-                'title' => $title,
+                'title' => $item->title,
             ];
             Mail::send('pages.sendMail', $data, function($message) use ($email, $name) {
                 $message->from('phongdo789@gmail.com', 'Phong Do');
@@ -194,32 +199,33 @@ class ItemController extends Controller
     {
         $key = $request['key'];
         $data = DB::table('items')
-                ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
-                ->leftJoin('users', 'items.user_id', '=', 'users.id')
-                ->select('items.*', 'categories.name as category_name', 'users.name as user_name')
-                ->where('items.deleted_at', '=', null)
-                ->where('title', 'LIKE', '%'.$key.'%')
-                ->Orwhere('publisher','LIKE','%'.$key.'%')
-                ->Orwhere('image','LIKE','%'.$key.'%')
-                ->Orwhere('categories.name','LIKE','%'.$key.'%')
-                ->Orwhere('users.name','LIKE','%'.$key.'%')
-                ->Orwhere('quantity','LIKE','%'.$key.'%')
-                ->Orwhere('price','LIKE','%'.$key.'%')
-                ->orderBy('created_at', 'DESC')
-                ->paginate(20);
+            ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
+            ->leftJoin('users', 'items.user_id', '=', 'users.id')
+            ->select('items.*', 'categories.name as category_name', 'users.name as user_name')
+            ->whereNull('items.deleted_at')
+            ->where('title', 'LIKE', '%' . $key . '%')
+            ->orWhere('publisher','LIKE','%' . $key . '%')
+            ->orWhere('image','LIKE','%' . $key .'%')
+            ->orWhere('category_name','LIKE','%' . $key . '%')
+            ->orWhere('user_name','LIKE','%' . $key . '%')
+            ->orWhere('quantity','LIKE','%' . $key . '%')
+            ->orWhere('price','LIKE','%' . $key . '%')
+            ->orderBy('created_at', 'DESC')
+            ->paginate();
 
         return  view('pages.items.list-items')->with(compact('data'));
     }
     /**
      * Hiển thị các item đã SoftDelete
      */
-    public function showSoftDelete() {
+    public function showSoftDelete()
+    {
         if(Session::get('email')) {
             $data = Item::onlyTrashed()
-            ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
-            ->leftJoin('users', 'items.user_id', '=', 'users.id')
-            ->select('items.*', 'categories.name as category_name', 'users.name as user_name')->onlyTrashed()
-            ->orderBy('created_at', 'DESC')->paginate(20);
+                ->leftJoin('categories', 'items.category_id', '=', 'categories.id')
+                ->leftJoin('users', 'items.user_id', '=', 'users.id')
+                ->select('items.*', 'categories.name as category_name', 'users.name as user_name')->onlyTrashed()
+                ->orderBy('created_at', 'DESC')->paginate();
             Session::put('softDelete', true);
 
             return view('pages.items.list-items')->with(compact('data'));
@@ -233,8 +239,8 @@ class ItemController extends Controller
      */
     public function restore($id)
     {
-        $item_restore = Item::withTrashed()->find($id)->restore();
+        $itemRestore = Item::withTrashed()->find($id)->restore();
 
-        return $item_restore;
+        return $itemRestore;
     }
 }

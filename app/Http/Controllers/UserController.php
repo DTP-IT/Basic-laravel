@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Redirect;
@@ -17,16 +18,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        /**
-         * Kiểm tra quyền hạn, chỉ các tài khoản admin mới được quyền sử dụng
-         */
-        if(Session::get('level') == 'Admin') {
-            $data = User::paginate(20);
+        $data = User::paginate();
 
-            return view('pages.users.list-users')->with(compact('data'));
-        } else {
-            return Redirect::to('/login');
-        }
+        return view('pages.users.list-users')->with(compact('data'));
     }
 
     /**
@@ -36,15 +30,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        /**
-         * Kiểm tra quyền hạn, chỉ các tài khoản admin mới được quyền sử dụng
-         */
-        if(Session::get('level') == 'Admin') {
-            return view('pages.users.add-user');
-        } else {
-            return Redirect::to('/login');
-        }
-        
+        return view('pages.users.add-user');
     }
 
     /**
@@ -53,49 +39,38 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-        /**
-         * Kiểm tra quyền hạn, chỉ các tài khoản admin mới được quyền sử dụng
-         */
-        if(Session::get('level') == 'Admin') {
-            $data = $request->validate([
-                'name' => 'required',
-                'email' => 'required',
-                'password' => 'required',
-                'confirmPassword' => 'required',
-            ]);
-            
-            $user = new User();
-            
-            $user->name = $data['name'];
-            $user->email = $data['email'];
-            if ($data['password'] == $data['confirmPassword']) {
-                $user->password = md5($data['password']);
-            } else {
-                Session::put('message', 'Mật khẩu không trùng khớp!');
-                    
-                return Redirect::to('user/add-user');
-            }
-            
-            if ($request['level']) {
-                
-                if ($request['level'] != 'Admin') {
-                    $user->level = 'User';
-                } else {
-                    $user->level = 'Admin';
-                }
-            } else {
-                $user->level = 'User';
-            }
-        
-            $user->save();
-            Session::put('message', 'Thêm User thành công!');
+        $data = $request->validated();
 
-            return Redirect::to('user/add-user');
+        if ($data['password'] == $data['confirmPassword']) {
+            $password = md5($data['password']);
         } else {
-            return Redirect::to('/login');
+            return redirect()->route('user.create')->with('message', 'Mật khẩu không trùng khớp!');
         }
+        
+        if ($request['level']) {
+            
+            if ($request['level'] != 'Admin') {
+                $level = 'User';
+            } else {
+                $level = 'Admin';
+            }
+        } else {
+            $level = 'User';
+        }
+        
+        User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $password,
+            'level' => $level,
+            'created_at'
+
+        ]);
+
+        return redirect()->route('user.create')->with('message', 'Thêm user thành công');
+
     }
 
     /**
@@ -106,30 +81,28 @@ class UserController extends Controller
         $email = $request['email'];
         $password = md5($request['password']);
         
-        $login = User::where('email', '=', $email)->where('password', '=', $password)->get();
+        $login = User::where('email', '=', $email)->where('password', '=', $password)->first();
         
         if($login) {
             $count_login = $login->count();
             if($count_login > 0) {
-                Session::put('id', $login['0']['id']);
-                Session::put('name', $login['0']['name']);
-                Session::put('email', $login['0']['email']);
-                Session::put('level', $login['0']['level']);
+                Session::put('id', $login['id']);
+                Session::put('name', $login['name']);
+                Session::put('email', $login['email']);
+                Session::put('level', $login['level']);
 
-                return Redirect::to('/');
-            } else {
-                Session::put('message', 'Tài khoản hoặc mật khẩu không chính xác!');
-                
-                return Redirect::to('login');
-            }
-        } 
+                return redirect()->route('item.index');
+            } 
+        } else {
+            return redirect('login')->with('message', 'Tài khoản hoặc mật khẩu không chính xác!');
+        }
     }
     /**
      * Tìm kiếm thông tin tài khoản theo email đăng nhập
      */
     public function profile()
     {
-        $data = User::where('email', '=', Session::get('email'))->get();
+        $data = User::where('email', Session::get('email'))->first();
 
         return view('pages.profile.profile')->with(compact('data'));
     }
@@ -137,15 +110,10 @@ class UserController extends Controller
     /**
      * Cập nhật thông tin tài khoản của người đăng nhập
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(UserRequest $request)
     {
-        $data = $request->validate([
-            'id' => 'required',
-            'name' => 'required',
-            'email' => 'required',
-            'password' => 'required',
-            'confirmPassword' => 'required',
-        ]);
+        $data = $request->validated();
+
         $user = User::find($data['id']);
         $user->name = $data['name'];
         $user->email = $data['email'];
@@ -165,20 +133,13 @@ class UserController extends Controller
      */
     public function search(Request $request)
     {
-        /**
-         * Kiểm tra quyền hạn, chỉ các tài khoản admin mới được quyền sử dụng
-         */
-        if(Session::get('level') == 'Admin') {
-            $key = $request['key'];
-            $data = DB::table('users')
-                    ->where('name', 'LIKE', '%'.$key.'%')
-                    ->Orwhere('email','LIKE','%'.$key.'%')
-                    ->Orwhere('level','LIKE','%'.$key.'%')
-                    ->paginate(20);
+        $key = $request['key'];
+        $data = DB::table('users')
+            ->where('name', 'LIKE', '%' . $key . '%')
+            ->orWhere('email','LIKE','%' . $key . '%')
+            ->orWhere('level','LIKE','%' . $key . '%')
+            ->paginate();
 
-            return  view('pages.users.list-users')->with(compact('data'));
-        } else {
-            return Redirect::to('/login');
-        }
+        return  view('pages.users.list-users')->with(compact('data'));
     }
 }

@@ -24,28 +24,24 @@
   <div class="card">
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
-      <?php
-        $message = Session::get('message');
-        if($message) {
-          echo $message;
-          Session::put('message', null);
-        } 
-      ?>
-      <form action="{{URL::to('dashboard')}}" method="post">
+      @if (session('message')) 
+        <h3 class="card-title">{{ session('message') }}</h3>
+      @endif
+      <form action="{{ route('user.login') }}" method="post" id="frmLogin">
         @csrf {{ csrf_field() }}
         <div class="input-group mb-3">
-          <input type="email" name="email" class="form-control" placeholder="Email">
+          <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control" placeholder="Email">
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-envelope"></span>
+              <span class="fas fa-envelope" id="errorEmail"></span>
             </div>
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" name="password" class="form-control" placeholder="Password">
+          <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Password">
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-lock"></span>
+              <span class="fas fa-lock" id="errorPasswd"></span>
             </div>
           </div>
         </div>
@@ -95,5 +91,48 @@
 <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- AdminLTE App -->
 <script src="dist/js/adminlte.min.js"></script>
+<script>
+$('#frmLogin').on('submit', function() {
+  // alert('form login');
+
+  var mail = $('#email').val();
+  var passwd = $('#password').val();
+
+
+  var reGexMail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})/;
+  var reGexPassword = /[a-zA-Z0-9]{6,100}/;
+
+  
+  if (mail == '') {
+    $('#errorEmail').html('Vui lòng nhập địa chỉ mail!');
+
+    return false;
+  } else {
+      if (!reGexMail.test(mail)) {
+        $('#errorEmail').html('Vui lòng nhập đúng định dạng!');
+
+        return false;
+      } else {
+          $('#errorEmail').html(''); 
+        }
+    }
+
+  if (passwd == '') {
+      $('#errorPasswd').html('Vui lòng nhập mật khẩu!');
+
+      return false;
+  } else {
+      if (!reGexPassword.test(passwd)) {
+        $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
+
+          return false;
+      } else {
+        $('#errorPasswd').html(''); 
+        }
+    }
+
+  return true;
+});
+</script>
 </body>
 </html>

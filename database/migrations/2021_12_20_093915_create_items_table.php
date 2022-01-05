@@ -14,8 +14,6 @@ class CreateItemsTable extends Migration
     public function up()
     {
         Schema::create('items', function (Blueprint $table) {
-            $table->charset = 'utf8';
-            $table->collation = 'utf8_unicode_ci';
             $table->id();
             $table->string('title', 255)->nullable();
             $table->string('publisher', 100)->nullable();

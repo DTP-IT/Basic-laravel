@@ -13,9 +13,11 @@
 
   <!-- Main Sidebar Container -->
  @include('includes.sidebar')
-
   <!-- Content Wrapper. Contains page content -->
-  @yield('content')
+  <div class="content-wrapper">
+    @include('includes.header')
+    @yield('content')  
+  </div>
   <!-- /.content-wrapper -->
  @include('includes.footer')
 
