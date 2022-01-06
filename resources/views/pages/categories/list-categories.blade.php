@@ -9,8 +9,8 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            @if(Session::get('level') && Session::get('level') == 'Admin')
-            <a class="btn btn-success" href="category/add-category"><i class="fas fa-plus"></i> Add</a>
+            @if(session('login.level') == 'Admin')
+              <a class="btn btn-success" href="{{ route('category.create') }}"><i class="fas fa-plus"></i> Add</a>
             @endif
             <div class="card-tools">
               <div class="input-group input-group-sm" style="width: 150px;">
@@ -35,8 +35,8 @@
               <tbody>
                 @foreach($data as $key => $category)
                   <tr>
-                      <td>{{$category->id}}</td>
-                      <td>{{$category->name}}</td>                    
+                    <td>{{$category->id}}</td>
+                    <td>{{$category->name}}</td>              
                   </tr>
                 @endforeach
               </tbody>

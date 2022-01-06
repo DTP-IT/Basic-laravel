@@ -13,9 +13,9 @@
           <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="#" class="d-block">@if(Session::get('name')) {{Session::get('name')}} @endif</a>
-          <a href="#" class="d-block">@if(Session::get('email')) {{Session::get('email')}} @endif</a>
-          <a href="#" class="d-block">@if(Session::get('level')) {{Session::get('level')}} @endif</a>
+          <a href="#" class="d-block">@if(session('login.name')) {{ session('login.name') }} @endif</a>
+          <a href="#" class="d-block">@if(session('login.email')) {{ session('login.email') }} @endif</a>
+          <a href="#" class="d-block">@if(session('login.level')) {{ session('login.level') }} @endif</a>
           
         </div>
         
@@ -39,14 +39,14 @@
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
           <li class="nav-item menu-open">
-            <a href="/profile" class="nav-link">
+            <a href="{{ route('user.profile') }}" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                Profile
                 <i class="right fas fa-angle-left"></i>
               </p>
             </a>
-            <a href="/item" class="nav-link">
+            <a href="{{ route('item.index') }}" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                 Danh sách sản phẩm
@@ -55,7 +55,7 @@
             </a>
           </li>
           <li class="nav-item menu-open">
-            <a href="/category" class="nav-link">
+            <a href="{{ route('category.index') }}" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                 Danh sách thể loại
@@ -63,9 +63,9 @@
               </p>
             </a>
           </li>
-          @if(Session::get('level') && Session::get('level') == 'Admin')
+          @if(session('login.level') == 'Admin')
           <li class="nav-item menu-open">
-            <a href="/user" class="nav-link">
+            <a href="{{ route('user.index') }}" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                 Danh sách User

@@ -9,24 +9,31 @@
       <!-- /.col -->
       <div class="col-md-12">
         <div class="card">
-          @if(Session::get('message'))
-          <div class="card-header p-2">
-            <div class="alert alert-primary alert-dismissible fade show" role="alert">
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                <span class="sr-only">Close</span>
-              </button>
-              <strong>Thông báo!</strong> {{Session::get('message')}}
-            </div>
-            {{Session::put('message', null);}}
-          </div><!-- /.card-header -->
+          @if(session('message'))
+            <div class="card-header p-2">
+              <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">Close</span>
+                </button>
+                <strong>Notify!!</strong> {{ session('message') }}
+              </div>
+            </div><!-- /.card-header -->
           @endif
-        
+          @if ($errors)
+            <div class="mb-4 font-medium text-sm text-green-600">
+              @foreach ($errors->all() as $error)
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>{{ $error }}</strong> 
+                </div>
+              @endforeach
+            </div>
+          @endif
           <div class="card-body">
             <div class="tab-content">
               <div class="active tab-pane" id="settings">
-                <form action="/user/store" method="post" class="form-horizontal" id="frmAddUSer">
-                    @csrf {{ csrf_field() }}
+                <form action="{{ route('user.store') }}" method="post" class="form-horizontal" id="frmAddUSer">
+                  @csrf {{ csrf_field() }}
                   <div class="form-group row">
                     <label for="title" class="col-sm-2 col-form-label">Name</label>
                     <div class="col-sm-10">
@@ -44,13 +51,13 @@
                   <div class="form-group row">
                     <label for="inputName" class="col-sm-2 col-form-label">Level</label>
                     <div class="col-sm-10">
-                        <div class="form-group">
-                          <label for="level"></label>
-                          <select class="form-control" name="level" id="level">
-                              <option value="Admin">Admin</option>
-                              <option value="User">User</option>
-                          </select>
-                        </div>
+                      <div class="form-group">
+                        <label for="level"></label>
+                        <select class="form-control" name="level" id="level">
+                          <option value="User">User</option>
+                          <option value="Admin">Admin</option>
+                        </select>
+                      </div>
                     </div>
                     <small id="errorLevel" class="form-text text-danger"></small>
                   </div>
@@ -114,71 +121,60 @@ $('#frmAddUSer').on('submit', function()
       $('#errorName').html('Vui lòng nhập tên!');
 
       return false;
-  } else {
-      if (!reGexName.test(name)) {
+  } else if (!reGexName.test(name)) {
         $('#errorName').html('Vui lòng nhập đúng định dạng!');
-
-          return false;
-      } else {
+        
+        return false;
+    } else {
         $('#errorName').html(''); 
-        }
-    }
+      }
 
   if (mail == '') {
     $('#errorEmail').html('Vui lòng nhập địa chỉ mail!');
 
     return false;
-  } else {
-      if (!reGexMail.test(mail)) {
-        $('#errorEmail').html('Vui lòng nhập đúng định dạng!');
+  } else if (!reGexMail.test(mail)) {
+      $('#errorEmail').html('Vui lòng nhập đúng định dạng!');
 
-        return false;
-      } else {
-          $('#errorEmail').html(''); 
-        }
-    }
+      return false;
+    } else {
+        $('#errorEmail').html(''); 
+      }
 
   if (passwd == '') {
       $('#errorPasswd').html('Vui lòng nhập mật khẩu!');
 
       return false;
-  } else {
-      if (!reGexPassword.test(passwd)) {
-        $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
+  } else if (!reGexPassword.test(passwd)) {
+      $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
 
-          return false;
-      } else {
+      return false;
+    } else {
         $('#errorPasswd').html(''); 
-        }
-    }
-
+      }
   if (confirmPasswd == '') {
     $('#ErrorConfirmPassword').html('Vui lòng nhập lại mật khẩu!');
 
     return false;
-  } else {
-      if (confirmPasswd != passwd) {
-        $('#ErrorConfirmPassword').html('Mật khẩu không trùng khớp. Vui lòng nhập lại!');
-
-          return false;
-      } else {
-        $('#ErrorConfirmPassword').html(''); 
-        }
-    }
-  
-  if (level == '') {
-      $('#errorLevel').html('Vui lòng chọn quyền hạn');
+  } else if (confirmPasswd != passwd) {
+      $('#ErrorConfirmPassword').html('Mật khẩu không trùng khớp. Vui lòng nhập lại!');
 
       return false;
-  } else {
-      if (level != 'Admin' && level != 'User') {
-          $('#errorLevel').html('Vui lòng chọn đúng quyền hạn');
-
-          return false;
-      } else {
-          $('#errorLevel').html('');
+    } else {
+        $('#ErrorConfirmPassword').html(''); 
       }
-  }
+  
+  if (level == '') {
+    $('#errorLevel').html('Vui lòng chọn quyền hạn');
+
+    return false;
+  } else if (level != 'Admin' && level != 'User') {
+      $('#errorLevel').html('Vui lòng chọn đúng quyền hạn');
+
+      return false;
+    } else {
+        $('#errorLevel').html('');
+      }
 
   return true;
 });

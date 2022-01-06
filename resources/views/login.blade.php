@@ -18,14 +18,25 @@
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="../../index2.html"><b>Admin</b>LTE</a>
+    <a href="#"><b>Admin</b>LTE</a>
   </div>
   <!-- /.login-logo -->
   <div class="card">
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
-      @if (session('message')) 
-        <h3 class="card-title">{{ session('message') }}</h3>
+      @if (session('message'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <strong>{{ session('message') }}</strong> 
+        </div>
+      @endif
+      @if ($errors)
+        <div class="mb-4 font-medium text-sm text-green-600">
+          @foreach ($errors->all() as $error)
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <strong>{{ $error }}</strong> 
+            </div>
+          @endforeach
+        </div>
       @endif
       <form action="{{ route('user.login') }}" method="post" id="frmLogin">
         @csrf {{ csrf_field() }}
@@ -77,7 +88,7 @@
         <a href="forgot-password.html">I forgot my password</a>
       </p>
       <p class="mb-0">
-        <a href="/register" class="text-center">Register a new membership</a>
+        <a href="#" class="text-center">Register a new membership</a>
       </p>
     </div>
     <!-- /.login-card-body -->
@@ -93,43 +104,35 @@
 <script src="dist/js/adminlte.min.js"></script>
 <script>
 $('#frmLogin').on('submit', function() {
-  // alert('form login');
-
   var mail = $('#email').val();
   var passwd = $('#password').val();
-
-
   var reGexMail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})/;
   var reGexPassword = /[a-zA-Z0-9]{6,100}/;
 
-  
   if (mail == '') {
     $('#errorEmail').html('Vui lòng nhập địa chỉ mail!');
 
     return false;
-  } else {
-      if (!reGexMail.test(mail)) {
-        $('#errorEmail').html('Vui lòng nhập đúng định dạng!');
+  } else if (!reGexMail.test(mail)) {
+      $('#errorEmail').html('Vui lòng nhập đúng định dạng!');
 
-        return false;
-      } else {
-          $('#errorEmail').html(''); 
-        }
-    }
+      return false;
+    } else {
+        $('#errorEmail').html(''); 
+      }
+
 
   if (passwd == '') {
       $('#errorPasswd').html('Vui lòng nhập mật khẩu!');
 
       return false;
-  } else {
-      if (!reGexPassword.test(passwd)) {
-        $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
-
-          return false;
-      } else {
+  } else if (!reGexPassword.test(passwd)) {
+      $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
+      
+      return false;
+    } else {
         $('#errorPasswd').html(''); 
-        }
-    }
+      }
 
   return true;
 });

@@ -9,9 +9,9 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <a class="btn btn-success" href="user/add-user"><i class="fas fa-plus"></i> Add</a>
+            <a class="btn btn-success" href="{{ route('user.create') }}"><i class="fas fa-plus"></i> Add</a>
             <div class="card-tools">
-              <form action="user/search" method="get">
+              <form action="{{ route('user.search') }}" method="get">
                 <div class="input-group input-group-sm" style="width: 150px;">
                   <input type="text" name="key" class="form-control float-right" placeholder="Search">
                   <div class="input-group-append">
@@ -50,9 +50,9 @@
           <!-- /.card-body -->
         </div>
         <!-- /.card -->
-    </div>
-        <!-- /.col -->
       </div>
+      <!-- /.col -->
+    </div>
   </div><!-- /.container-fluid -->
 </section>
   <!-- /.content -->

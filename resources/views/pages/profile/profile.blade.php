@@ -9,6 +9,26 @@
       <!-- /.col -->
       <div class="col-md-12">
         <div class="card">
+          @if(session('message'))
+            <div class="card-header p-2">
+              <div class="alert alert-primary alert-dismissible fade show" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                  <span class="sr-only">Close</span>
+                </button>
+                <strong>Notify!</strong> {{session('message')}}
+              </div>
+            </div><!-- /.card-header -->
+          @endif
+          @if ($errors)
+            <div class="mb-4 font-medium text-sm text-green-600">
+              @foreach ($errors->all() as $error)
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>{{ $error }}</strong> 
+                </div>
+              @endforeach
+            </div>
+          @endif
           <div class="card-header p-2">
             <ul class="nav nav-pills">
               <li class="nav-item"><a class="nav-link active" href="#settings" data-toggle="tab">Settings</a></li>
@@ -17,10 +37,10 @@
           <div class="card-body">
             <div class="tab-content">
               <div class="active tab-pane" id="settings">
-                <form action="update-profile" method="post" class="form-horizontal" id="frmProfile">
+                <form action="{{ route('user.updateProfile', [$data['id']]) }}" method="post" class="form-horizontal" id="frmProfile">
                     @csrf {{ csrf_field() }}
                     <input name="_method" type="hidden" value="PUT">
-                    <div class="form-group row" hidden>
+                    <div class="form-group row">
                       <label for="idUser" class="col-sm-2 col-form-label" >ID</label>
                       <div class="col-sm-10">
                         <input type="text" class="form-control" name="id" id="idUser" value="{{$data['id']}}" placeholder="Name" readonly>
@@ -113,60 +133,52 @@
     var reGexPassword = /[a-zA-Z0-9]{6,100}/;
 
     if (name == '') {
-        $('#errorName').html('Vui lòng nhập tên!');
+      $('#errorName').html('Vui lòng nhập tên!');
+
+      return false;
+    } else if (!reGexName.test(name)) {
+        $('#errorName').html('Vui lòng nhập đúng định dạng!');
 
         return false;
-    } else {
-        if (!reGexName.test(name)) {
-          $('#errorName').html('Vui lòng nhập đúng định dạng!');
-
-            return false;
-        } else {
-          $('#errorName').html(''); 
-          }
-      }
+      } else {
+        $('#errorName').html(''); 
+        }
 
     if (mail == '') {
       $('#errorMail').html('Vui lòng nhập địa chỉ mail!');
 
       return false;
-    } else {
-        if (!reGexMail.test(mail)) {
-          $('#errorMail').html('Vui lòng nhập đúng định dạng!');
+    } else if (!reGexMail.test(mail)) {
+        $('#errorMail').html('Vui lòng nhập đúng định dạng!');
 
-          return false;
-        } else {
-            $('#errorMail').html(''); 
-          }
-      }
+        return false;
+      } else {
+          $('#errorMail').html(''); 
+        }
 
     if (passwd == '') {
         $('#errorPasswd').html('Vui lòng nhập mật khẩu!');
 
         return false;
-    } else {
-        if (!reGexPassword.test(passwd)) {
-          $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
-
-            return false;
-        } else {
-          $('#errorPasswd').html(''); 
-          }
-      }
-
-      if (confirmPasswd == '') {
-        $('#errorConfirmPasswd').html('Vui lòng nhập lại mật khẩu!');
+    } else if (!reGexPassword.test(passwd)) {
+        $('#errorPasswd').html('Vui lòng nhập đúng định dạng!');
 
         return false;
-    } else {
-        if (confirmPasswd != passwd) {
-          $('#errorConfirmPasswd').html('Mật khẩu không trùng khớp. Vui lòng nhập lại!');
+      } else {
+          $('#errorPasswd').html(''); 
+        }
 
-            return false;
-        } else {
+    if (confirmPasswd == '') {
+      $('#errorConfirmPasswd').html('Vui lòng nhập lại mật khẩu!');
+
+      return false;
+    } else if (confirmPasswd != passwd) {
+        $('#errorConfirmPasswd').html('Mật khẩu không trùng khớp. Vui lòng nhập lại!');
+
+        return false;
+      } else {
           $('#errorConfirmPasswd').html(''); 
-          }
-      }
+        }
 
     return true;
   });

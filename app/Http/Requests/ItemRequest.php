@@ -24,9 +24,9 @@ class ItemRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required',
-            'publisher' => 'required',
-            'category' => 'required'
+            'title' => ['required', 'max:255'],
+            'publisher' => ['required', 'max:255'],
+            'category' => ['required', 'int']
         ];
     }
 }

@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
-class AccessPermission
+class AccessLogin
 {
     /**
      * Handle an incoming request.
@@ -17,11 +17,10 @@ class AccessPermission
      */
     public function handle(Request $request, Closure $next)
     {
-        if(Session::get('login.level') == 'Admin') {
+        if(Session::get('login.email')) {
             return $next($request);
         } else {
             return redirect()->route('guest.login');
         }
-        
     }
 }

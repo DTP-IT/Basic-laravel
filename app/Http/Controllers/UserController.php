@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\LoginResquet;
 use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 
@@ -42,20 +43,9 @@ class UserController extends Controller
     public function store(UserRequest $request)
     {
         $data = $request->validated();
-
-        if ($data['password'] == $data['confirmPassword']) {
-            $password = md5($data['password']);
-        } else {
-            return redirect()->route('user.create')->with('message', 'Mật khẩu không trùng khớp!');
-        }
         
-        if ($request['level']) {
-            
-            if ($request['level'] != 'Admin') {
-                $level = 'User';
-            } else {
-                $level = 'Admin';
-            }
+        if ($request('level') == 'Admin') {
+            $level = 'Admin';
         } else {
             $level = 'User';
         }
@@ -63,73 +53,56 @@ class UserController extends Controller
         User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => $password,
+            'password' => md5($data['password']),
             'level' => $level,
             'created_at'
-
         ]);
 
-        return redirect()->route('user.create')->with('message', 'Thêm user thành công');
-
+        return redirect()->route('user.create')->with('message', 'Create user success');
     }
 
-    /**
-     * Đăng nhập hệ thống
-     */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $email = $request['email'];
-        $password = md5($request['password']);
-        
-        $login = User::where('email', '=', $email)->where('password', '=', $password)->first();
+        $data = $request->validated();
+        $login = User::where('email', $data['email'])->where('password', md5($data['password']))->first();
         
         if($login) {
-            $count_login = $login->count();
-            if($count_login > 0) {
-                Session::put('id', $login['id']);
-                Session::put('name', $login['name']);
-                Session::put('email', $login['email']);
-                Session::put('level', $login['level']);
+            Session::put('login', [
+                'id' => $login['id'],
+                'name'=> $login['name'],
+                'email'=> $login['email'],
+                'level'=> $login['level']
+            ]);
 
-                return redirect()->route('item.index');
-            } 
-        } else {
-            return redirect('login')->with('message', 'Tài khoản hoặc mật khẩu không chính xác!');
+            return redirect()->route('item.index');
         }
+
+        return redirect()->route('guest.login')->with('message', 'Incorrect account or password!');
     }
-    /**
-     * Tìm kiếm thông tin tài khoản theo email đăng nhập
-     */
+
     public function profile()
     {
-        $data = User::where('email', Session::get('email'))->first();
+        $data = User::where('email', Session::get('login.email'))->first();
 
         return view('pages.profile.profile')->with(compact('data'));
     }
 
-    /**
-     * Cập nhật thông tin tài khoản của người đăng nhập
-     */
-    public function updateProfile(UserRequest $request)
+    public function updateProfile(UserRequest $request, $id)
     {
         $data = $request->validated();
 
-        $user = User::find($data['id']);
-        $user->name = $data['name'];
-        $user->email = $data['email'];
-        if ($data['password'] == $data['confirmPassword']) {
-            $user->password = md5($data['password']);
-        } else {
-            Session::put('message', 'Mật khẩu không trùng khớp!');
-                
-            return Redirect::to('profile');
-        }
-        $user->save();
+        $data = [
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => md5($data['password'])
+        ];
 
-        return Redirect::to('profile');
+        User::where('id', $id)->update($data);
+
+        return redirect()->route('user.profile')->with('message', 'Profile update successful!');
     }
     /**
-     * Tìm kiếm User
+     * Search User
      */
     public function search(Request $request)
     {

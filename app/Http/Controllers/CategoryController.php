@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Http\Requests\CategoryRequest;
+
 class CategoryController extends Controller
 {
     /**
@@ -41,6 +42,6 @@ class CategoryController extends Controller
             'name' => $data['name'],
         ]);
         
-        return redirect()->route('category.create')->with('message', 'Thêm thể loại thành công');
+        return redirect()->route('category.create')->with('message', 'Create category success!');
     }
 }
